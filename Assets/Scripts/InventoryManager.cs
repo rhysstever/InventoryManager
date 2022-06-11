@@ -13,6 +13,7 @@ public enum Direction
 
 public enum ControlScheme
 {
+    Any,
     WASD,
     Arrows,
     NumPad
@@ -38,7 +39,10 @@ public class InventoryManager : MonoBehaviour
     }
     #endregion
 
+    // Set in inspector
     public ControlScheme currentControlScheme;
+
+    // Set at Start()
     public GraphNode<GameObject> currentlySelectedItem;
     private int columns;
     private int numOfSlots;
@@ -49,7 +53,6 @@ public class InventoryManager : MonoBehaviour
     void Start()
     {
         CreateInputDictionary();
-        currentControlScheme = ControlScheme.WASD;
         currentlySelectedItem = null;
         columns = 6;
         numOfSlots = 15;
@@ -150,11 +153,24 @@ public class InventoryManager : MonoBehaviour
     /// <returns>The corresponding direction</returns>
     private Direction GetInput()
     {
-        // Check every key in the control scheme,
-        // if a key is down, return the corresponding direction
-        foreach(KeyCode key in inputDictionary[currentControlScheme].Keys)
-            if(Input.GetKeyDown(key))
-                return inputDictionary[currentControlScheme][key];
+        // If the control scheme is "Any", 
+        // ALL control schemes need to be checked
+        if(currentControlScheme == ControlScheme.Any)
+		{
+            foreach(ControlScheme controlScheme in inputDictionary.Keys)
+                foreach(KeyCode key in inputDictionary[controlScheme].Keys)
+                    if(Input.GetKeyDown(key))
+                        return inputDictionary[controlScheme][key];
+        }
+        else
+        {
+            // Check every key in the control scheme,
+            // if a key is down, return the corresponding direction
+            foreach(KeyCode key in inputDictionary[currentControlScheme].Keys)
+                if(Input.GetKeyDown(key))
+                    return inputDictionary[currentControlScheme][key];
+        }
+
         // Otherwise, return no direction
         return Direction.None;
     }
