@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Direction
+public enum Action
 {
     Up,
     Right,
     Down,
     Left,
+    Select,
     None
 }
 
@@ -15,7 +16,6 @@ public enum ControlScheme
 {
     Any,
     WASD,
-    Arrows,
     NumPad
 }
 
@@ -43,31 +43,28 @@ public class InventoryManager : MonoBehaviour
     public ControlScheme currentControlScheme;
 
     // Set at Start()
-    public GraphNode<GameObject> currentlySelectedItem;
+    public GraphNode<GameObject> currentlyHoveredItem;
     private int columns;
     private int numOfSlots;
     private GraphNode<GameObject>[] itemSlots;
-    private Dictionary<ControlScheme, Dictionary<KeyCode, Direction>> inputDictionary;
+    private Dictionary<ControlScheme, Dictionary<KeyCode, Action>> inputDictionary;
 
     // Start is called before the first frame update
     void Start()
     {
         CreateInputDictionary();
-        currentlySelectedItem = null;
+        currentlyHoveredItem = null;
         columns = 6;
         numOfSlots = 15;
-        itemSlots = new GraphNode<GameObject>[numOfSlots];
-
-        CreateInventoryGraph();
+        
+        itemSlots = CreateInventoryGraphArray(numOfSlots, columns);
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Check for any input and change the selected slot accordingly
-        Direction direction = GetInput();
-        if(direction != Direction.None)
-            MoveSelectedSlot(direction);
+        // Check for any input
+        CheckForInput(currentControlScheme);
     }
 
     /// <summary>
@@ -83,130 +80,174 @@ public class InventoryManager : MonoBehaviour
     public int GetSlotsCount() { return itemSlots.Length; }
 
     /// <summary>
+    /// Pairs each UI slot object to the corresponding graph node
+    /// </summary>
+    /// <param name="parentUIElements">The parent object of all item slot objects</param>
+    public void PairUIElementsToGraph(GameObject parentUIElements)
+    {
+        for(int i = 0; i < parentUIElements.transform.childCount; i++)
+            parentUIElements.transform.GetChild(i).GetComponent<ItemSlot>().itemSlotNode = itemSlots[i];
+    }
+
+    /// <summary>
     /// Create each dictionary for each direction within a larger dictionary for each control scheme
     /// </summary>
     private void CreateInputDictionary()
 	{
-        inputDictionary = new Dictionary<ControlScheme, Dictionary<KeyCode, Direction>>();
+        inputDictionary = new Dictionary<ControlScheme, Dictionary<KeyCode, Action>>();
 
-        Dictionary<KeyCode, Direction> wasdInputs = new Dictionary<KeyCode, Direction>();
-        wasdInputs.Add(KeyCode.W, Direction.Up);
-        wasdInputs.Add(KeyCode.A, Direction.Left);
-        wasdInputs.Add(KeyCode.S, Direction.Down);
-        wasdInputs.Add(KeyCode.D, Direction.Right);
+        Dictionary<KeyCode, Action> wasdInputs = new Dictionary<KeyCode, Action>();
+        wasdInputs.Add(KeyCode.W, Action.Up);
+        wasdInputs.Add(KeyCode.A, Action.Left);
+        wasdInputs.Add(KeyCode.S, Action.Down);
+        wasdInputs.Add(KeyCode.D, Action.Right);
+        wasdInputs.Add(KeyCode.E, Action.Select);
 
         inputDictionary.Add(ControlScheme.WASD, wasdInputs);
 
-        Dictionary<KeyCode, Direction> arrowInputs = new Dictionary<KeyCode, Direction>();
-        arrowInputs.Add(KeyCode.UpArrow, Direction.Up);
-        arrowInputs.Add(KeyCode.LeftArrow, Direction.Left);
-        arrowInputs.Add(KeyCode.DownArrow, Direction.Down);
-        arrowInputs.Add(KeyCode.RightArrow, Direction.Right);
-
-        inputDictionary.Add(ControlScheme.Arrows, arrowInputs);
-
-        Dictionary<KeyCode, Direction> numPadInputs = new Dictionary<KeyCode, Direction>();
-        numPadInputs.Add(KeyCode.Keypad8, Direction.Up);
-        numPadInputs.Add(KeyCode.Keypad4, Direction.Left);
-        numPadInputs.Add(KeyCode.Keypad5, Direction.Down);
-        numPadInputs.Add(KeyCode.Keypad6, Direction.Right);
+        Dictionary<KeyCode, Action> numPadInputs = new Dictionary<KeyCode, Action>();
+        numPadInputs.Add(KeyCode.Keypad8, Action.Up);
+        numPadInputs.Add(KeyCode.Keypad4, Action.Left);
+        numPadInputs.Add(KeyCode.Keypad5, Action.Down);
+        numPadInputs.Add(KeyCode.Keypad6, Action.Right);
+        numPadInputs.Add(KeyCode.Keypad9, Action.Select);
 
         inputDictionary.Add(ControlScheme.NumPad, numPadInputs);
     }
 
     /// <summary>
-    /// Create and organize inventory slots into a graph structure
+    /// Create inventory slots into a graphic structure
     /// </summary>
-    private void CreateInventoryGraph()
+    /// <param name="numOfSlots">The total number of slots in the inventory</param>
+    /// <param name="columns">The number of columns in the inventory</param>
+    /// <returns>An array of graph nodes that represent the inventory</returns>
+    private GraphNode<GameObject>[] CreateInventoryGraphArray(int numOfSlots, int columns)
 	{
+        // Create the array based on the number of slots
+        GraphNode<GameObject>[] itemSlots = new GraphNode<GameObject>[numOfSlots];
+
         // Create and add slot objects to list
-        for(int i = 0; i < itemSlots.Length; i++)
+        for(int i = 0; i < numOfSlots; i++)
             itemSlots[i] = new GraphNode<GameObject>(null);
 
         // Dynamically add neighbors
-        for(int i = 0; i < itemSlots.Length; i++)
+        for(int i = 0; i < numOfSlots; i++)
         {
             // Has an above neighbor
             if(i / columns > 0)
-                itemSlots[i].SetNeighbor(Direction.Up, itemSlots[i - columns]);
+                itemSlots[i].SetNeighbor(Action.Up, itemSlots[i - columns]);
 
             // Has a right neighbor
-            if(i % columns < columns - 1 && i + 1 < itemSlots.Length)
-                itemSlots[i].SetNeighbor(Direction.Right, itemSlots[i + 1]);
+            if(i % columns < columns - 1 && i + 1 < numOfSlots)
+                itemSlots[i].SetNeighbor(Action.Right, itemSlots[i + 1]);
 
             // Has a below neighbor
-            if(i + columns < itemSlots.Length)
-                itemSlots[i].SetNeighbor(Direction.Down, itemSlots[i + columns]);
+            if(i + columns < numOfSlots)
+                itemSlots[i].SetNeighbor(Action.Down, itemSlots[i + columns]);
 
             // Has a left neighbor
             if(i % columns > 0)
-                itemSlots[i].SetNeighbor(Direction.Left, itemSlots[i - 1]);
+                itemSlots[i].SetNeighbor(Action.Left, itemSlots[i - 1]);
         }
 
-        // Select the first slot
-        SelectItem(itemSlots[0]);
+        // Hover over the first slot
+        SetNewHoveredItem(itemSlots[0]);
+        
+        // Return the array of GraphNodes
+        return itemSlots;
     }
 
     /// <summary>
-    /// Gives a direction based on user input
+    /// A simpler overall method to be called to handle all input
     /// </summary>
-    /// <returns>The corresponding direction</returns>
-    private Direction GetInput()
+    /// <param name="controlScheme">The control scheme being used for user input</param>
+    private void CheckForInput(ControlScheme controlScheme)
+	{
+        InterpretAction(GetActionFromInput(controlScheme));
+	}
+
+    /// <summary>
+    /// Gives an action based on user input
+    /// </summary>
+    /// <param name="controlScheme">The control scheme being used</param>
+    /// <returns>The corresponding action</returns>
+    private Action GetActionFromInput(ControlScheme controlScheme)
     {
         // If the control scheme is "Any", 
         // ALL control schemes need to be checked
-        if(currentControlScheme == ControlScheme.Any)
-		{
-            foreach(ControlScheme controlScheme in inputDictionary.Keys)
-                foreach(KeyCode key in inputDictionary[controlScheme].Keys)
+        if(controlScheme == ControlScheme.Any)
+        {
+            // loop thr each control scheme
+            foreach(ControlScheme ctrlscheme in inputDictionary.Keys)
+                // loop thr each key in the control scheme
+                foreach(KeyCode key in inputDictionary[ctrlscheme].Keys)
                     if(Input.GetKeyDown(key))
-                        return inputDictionary[controlScheme][key];
+                        return inputDictionary[ctrlscheme][key];
         }
         else
         {
             // Check every key in the control scheme,
             // if a key is down, return the corresponding direction
-            foreach(KeyCode key in inputDictionary[currentControlScheme].Keys)
+            foreach(KeyCode key in inputDictionary[controlScheme].Keys)
                 if(Input.GetKeyDown(key))
-                    return inputDictionary[currentControlScheme][key];
+                    return inputDictionary[controlScheme][key];
         }
 
         // Otherwise, return no direction
-        return Direction.None;
+        return Action.None;
     }
 
     /// <summary>
-    /// Selects a new slot based on the given direction
+    /// Interprets input based on the particular action
     /// </summary>
-    /// <param name="direction">The direction to go towards the new selected slot</param>
-    private void MoveSelectedSlot(Direction direction)
+    /// <param name="action">The action being performed</param>
+    private void InterpretAction(Action action)
 	{
-        if(currentlySelectedItem.GetNeighbor(direction) != null)
-            SelectItem(currentlySelectedItem.GetNeighbor(direction));
+        // Ensure there is an actual action
+        if(action == Action.None)
+            return;
+        // If the item is being selected, select it
+        else if(action == Action.Select)
+            SelectItem(currentlyHoveredItem);
+        // Otherwise move the hovered slot
+        else
+            MoveHoveredSlot(action);
     }
 
     /// <summary>
-    /// Deselects the current selection and selects the new selection
+    /// Hovers a new slot based on the given direction
     /// </summary>
-    /// <param name="selectedItem">The newly selected item</param>
+    /// <param name="direction">The direction to go towards the new hovered slot</param>
+    private void MoveHoveredSlot(Action direction)
+	{
+        if(currentlyHoveredItem.GetNeighbor(direction) != null)
+            SetNewHoveredItem(currentlyHoveredItem.GetNeighbor(direction));
+    }
+
+    /// <summary>
+    /// Changes which item is being hovered over
+    /// </summary>
+    /// <param name="hoveredItem">The newly hovered item</param>
+    private void SetNewHoveredItem(GraphNode<GameObject> hoveredItem)
+	{
+        // Unhover the soon-to-be previously hovered item
+        if(currentlyHoveredItem != null)
+            currentlyHoveredItem.Hovered = false;
+
+        // Set the new hovered item
+        hoveredItem.Hovered = true;
+        currentlyHoveredItem = hoveredItem;
+    }
+
+    /// <summary>
+    /// Selects the given item
+    /// </summary>
+    /// <param name="selectedItem">The item to select</param>
     private void SelectItem(GraphNode<GameObject> selectedItem)
 	{
-        // Deselect the soon-to-be previously selected item
-        if(currentlySelectedItem != null)
-            currentlySelectedItem.Selected = false;
-
-        // Select and set the newly selected item
-        selectedItem.Selected = true;
-        currentlySelectedItem = selectedItem;
-    }
-
-    /// <summary>
-    /// Pairs each UI slot object to the corresponding graph node
-    /// </summary>
-    /// <param name="parentUIElements">The parent object of all item slot objects</param>
-    public void PairUIElementsToGraph(GameObject parentUIElements)
-	{
-        for(int i = 0; i < parentUIElements.transform.childCount; i++)
-            parentUIElements.transform.GetChild(i).GetComponent<ItemSlot>().itemSlotNode = itemSlots[i];
-    }
+        if(selectedItem.value != null)
+            Debug.Log(selectedItem.value.name + " has been selected");
+        else
+            Debug.Log("There is no item to select");
+	}
 }

@@ -5,15 +5,15 @@ public class GraphNode<T>
 {
 	#region Fields
 	public T value;
-    private Dictionary<Direction, GraphNode<T>> neighbors;
-    private bool isSelected;
+    private Dictionary<Action, GraphNode<T>> neighbors;
+    private bool isHovered;
 	#endregion
 
 	#region Properties
-    public bool Selected 
+    public bool Hovered 
     { 
-        get { return isSelected; } 
-        set { isSelected = value; }
+        get { return isHovered; } 
+        set { isHovered = value; }
     }
 	#endregion
 
@@ -25,12 +25,12 @@ public class GraphNode<T>
 	public GraphNode(T value)
 	{
         this.value = value;
-        neighbors = new Dictionary<Direction, GraphNode<T>>();
-        neighbors.Add(Direction.Up, null);
-        neighbors.Add(Direction.Right, null);
-        neighbors.Add(Direction.Down, null);
-        neighbors.Add(Direction.Left, null);
-        isSelected = false;
+        neighbors = new Dictionary<Action, GraphNode<T>>();
+        neighbors.Add(Action.Up, null);
+        neighbors.Add(Action.Right, null);
+        neighbors.Add(Action.Down, null);
+        neighbors.Add(Action.Left, null);
+        isHovered = false;
     }
     /// <summary>
     /// A new graph node
@@ -43,12 +43,12 @@ public class GraphNode<T>
     public GraphNode(T value, GraphNode<T> above, GraphNode<T> right, GraphNode<T> below, GraphNode<T> left)
 	{
         this.value = value;
-        neighbors = new Dictionary<Direction, GraphNode<T>>();
-        neighbors.Add(Direction.Up, above);
-        neighbors.Add(Direction.Right, right);
-        neighbors.Add(Direction.Down, below);
-        neighbors.Add(Direction.Left, left);
-        isSelected = false;
+        neighbors = new Dictionary<Action, GraphNode<T>>();
+        neighbors.Add(Action.Up, above);
+        neighbors.Add(Action.Right, right);
+        neighbors.Add(Action.Down, below);
+        neighbors.Add(Action.Left, left);
+        isHovered = false;
     }
     #endregion
 
@@ -58,7 +58,7 @@ public class GraphNode<T>
     /// </summary>
     /// <param name="direction">The direction of the neighbor</param>
     /// <returns>The neighboring node</returns>
-    public GraphNode<T> GetNeighbor(Direction direction)
+    public GraphNode<T> GetNeighbor(Action direction)
 	{
         return neighbors[direction];
 	}
@@ -67,7 +67,7 @@ public class GraphNode<T>
     /// </summary>
     /// <param name="direction">The direction of the neighbor to the node</param>
     /// <param name="neighbor">The neighboring node</param>
-    public void SetNeighbor(Direction direction, GraphNode<T> neighbor)
+    public void SetNeighbor(Action direction, GraphNode<T> neighbor)
 	{
         if (neighbors.ContainsKey(direction))
             neighbors[direction] = neighbor;

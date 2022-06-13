@@ -16,12 +16,12 @@ public class ItemSlot : MonoBehaviour
     void Update()
     {
         if(itemSlotNode != null)
-            Select(itemSlotNode.Selected);
+            Hover(itemSlotNode.Hovered);
     }
 
     /// <summary>
-    /// Select (or deselect) the slot's UI
+    /// Hover (or unhover) the slot's UI
     /// </summary>
-    /// <param name="isSelected">Whether the slot is being selected or deselected</param>
-    public void Select(bool isSelected) { transform.GetChild(0).GetChild(1).gameObject.SetActive(isSelected); }
+    /// <param name="isHovered">Whether the slot is being hovered or unhovered</param>
+    public void Hover(bool isHovered) { transform.GetChild(0).GetChild(1).gameObject.SetActive(isHovered); }
 }
