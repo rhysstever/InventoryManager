@@ -17,6 +17,10 @@ public class ItemSlot : MonoBehaviour
     {
         if(itemSlotNode != null)
             Hover(itemSlotNode.Hovered);
+
+        // Destroys the gameObject if there is no parent
+        if(transform.parent == null)
+            DestroyImmediate(this.gameObject);
     }
 
     /// <summary>

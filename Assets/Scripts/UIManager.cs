@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -25,11 +26,14 @@ public class UIManager : MonoBehaviour
     public GameObject canvas;
     public GameObject inventoryPanel;
     public GameObject itemSlotPrefab;
+    public GameObject slotsCountInput;
+    public GameObject controlsDropdown;
 
     // Start is called before the first frame update
     void Start()
     {
         CreateInventoryUI();
+        SetupUIEvents();
     }
 
     // Update is called once per frame
@@ -39,22 +43,42 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Sets up all event listeners for each user controls
+    /// </summary>
+    private void SetupUIEvents()
+    {
+        slotsCountInput.GetComponent<TMP_InputField>().onEndEdit.AddListener(delegate {
+            InventoryManager.instance.ChangeSlotCount(int.Parse(slotsCountInput.GetComponent<TMP_InputField>().text));
+        });
+
+        // Change current control scheme based on the dropdown's value
+        controlsDropdown.GetComponent<TMP_Dropdown>().onValueChanged.AddListener(delegate {
+            InventoryManager.instance.ChangeControlScheme(controlsDropdown.GetComponent<TMP_Dropdown>().value);
+        });
+    }
+
+    /// <summary>
     /// Create the grid of inventory slots
     /// </summary>
     private void CreateInventoryUI()
 	{
+        // Deactivate all current children
+        for(int i = inventoryPanel.transform.childCount - 1; i >= 0; i--)
+            inventoryPanel.transform.GetChild(i).parent = null;
+
+        // Get the number of columns and set the inital position and offsets
         int columns = InventoryManager.instance.GetColumnsCount();
 
-        Vector3 initialPos = new Vector3(-1300.0f, -400.0f, 0.0f);
-        float columnOffset = 125.0f;
-        float rowOffset = -150.0f;
+        Vector3 initialPos = new Vector3(-1330.0f, -350.0f, 0.0f);
+        float offset = 125.0f;
 
+        // Create each inventory slot UI object
         for(int i = 0; i < InventoryManager.instance.GetSlotsCount(); i++)
 		{
             // Calculate the element's position, with offsets
             Vector3 slotPos = initialPos;
-            slotPos.x += columnOffset * (i % columns);
-            slotPos.y += rowOffset * (i / columns);
+            slotPos.x += offset * (i % columns);
+            slotPos.y += -offset * (i / columns);
 
             // Create the element object and set its position
             GameObject itemSlotObject = Instantiate(itemSlotPrefab, Vector3.zero, Quaternion.identity, inventoryPanel.transform);
@@ -64,4 +88,23 @@ public class UIManager : MonoBehaviour
         // Pair each created UI element with its graph node
         InventoryManager.instance.PairUIElementsToGraph(inventoryPanel);
 	}
+
+    /// <summary>
+    /// Updates the canvas when the slot count input field value is changed
+    /// </summary>
+    /// <param name="slotCountText">The string text of the input field</param>
+    public void UpdateSlotCountUI(string slotCountText)
+	{
+        // Update the input field in case the value was clamped
+        SetSlotCountInputFieldText(slotCountText.ToString());
+
+        // Recreate the inventory UI
+        CreateInventoryUI();
+    }
+
+    /// <summary>
+    /// Changes the text of the slot count input field
+    /// </summary>
+    /// <param name="newText">The new text of the input field</param>
+    private void SetSlotCountInputFieldText(string newText) { slotsCountInput.GetComponent<TMP_InputField>().text = newText; }
 }

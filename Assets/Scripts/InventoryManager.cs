@@ -40,7 +40,7 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     // Set in inspector
-    public ControlScheme currentControlScheme;
+    private ControlScheme currentControlScheme;
 
     // Set at Start()
     public GraphNode<GameObject> currentlyHoveredItem;
@@ -54,10 +54,9 @@ public class InventoryManager : MonoBehaviour
     {
         CreateInputDictionary();
         currentlyHoveredItem = null;
-        columns = 6;
-        numOfSlots = 15;
-        
-        itemSlots = CreateInventoryGraphArray(numOfSlots, columns);
+        columns = 7;
+
+        ChangeSlotCount(28);
     }
 
     // Update is called once per frame
@@ -65,6 +64,10 @@ public class InventoryManager : MonoBehaviour
     {
         // Check for any input
         CheckForInput(currentControlScheme);
+
+        // Closes the app when 'ESC' is pressed
+        if(Input.GetKeyDown(KeyCode.Escape))
+            Application.Quit();
     }
 
     /// <summary>
@@ -78,6 +81,26 @@ public class InventoryManager : MonoBehaviour
     /// </summary>
     /// <returns>The number of inventory slots</returns>
     public int GetSlotsCount() { return itemSlots.Length; }
+
+    /// <summary>
+    /// Change the control scheme
+    /// </summary>
+    /// <param name="newControlSchemeIndex">The index of the control scheme (based on the enum)</param>
+    public void ChangeControlScheme(int newControlSchemeIndex) { currentControlScheme = (ControlScheme)newControlSchemeIndex; }
+
+    /// <summary>
+    /// Change the number of inventory slots
+    /// </summary>
+    /// <param name="newSlotCount">The new amount of inventory slots</param>
+    public void ChangeSlotCount(int newSlotCount)
+	{
+        // Clamp the value and recreate the graph
+        numOfSlots = Mathf.Clamp(newSlotCount, 1, 28);
+        itemSlots = CreateInventoryGraphArray(numOfSlots, columns);
+
+        // Update UI
+        UIManager.instance.UpdateSlotCountUI(numOfSlots.ToString());
+    }
 
     /// <summary>
     /// Pairs each UI slot object to the corresponding graph node
@@ -119,9 +142,9 @@ public class InventoryManager : MonoBehaviour
     /// Create inventory slots into a graphic structure
     /// </summary>
     /// <param name="numOfSlots">The total number of slots in the inventory</param>
-    /// <param name="columns">The number of columns in the inventory</param>
+    /// <param name="numOfColumns">The number of columns in the inventory</param>
     /// <returns>An array of graph nodes that represent the inventory</returns>
-    private GraphNode<GameObject>[] CreateInventoryGraphArray(int numOfSlots, int columns)
+    private GraphNode<GameObject>[] CreateInventoryGraphArray(int numOfSlots, int numOfColumns)
 	{
         // Create the array based on the number of slots
         GraphNode<GameObject>[] itemSlots = new GraphNode<GameObject>[numOfSlots];
@@ -134,19 +157,19 @@ public class InventoryManager : MonoBehaviour
         for(int i = 0; i < numOfSlots; i++)
         {
             // Has an above neighbor
-            if(i / columns > 0)
+            if(i / numOfColumns > 0)
                 itemSlots[i].SetNeighbor(Action.Up, itemSlots[i - columns]);
 
             // Has a right neighbor
-            if(i % columns < columns - 1 && i + 1 < numOfSlots)
+            if(i % numOfColumns < numOfColumns - 1 && i + 1 < numOfSlots)
                 itemSlots[i].SetNeighbor(Action.Right, itemSlots[i + 1]);
 
             // Has a below neighbor
-            if(i + columns < numOfSlots)
+            if(i + numOfColumns < numOfSlots)
                 itemSlots[i].SetNeighbor(Action.Down, itemSlots[i + columns]);
 
             // Has a left neighbor
-            if(i % columns > 0)
+            if(i % numOfColumns > 0)
                 itemSlots[i].SetNeighbor(Action.Left, itemSlots[i - 1]);
         }
 
