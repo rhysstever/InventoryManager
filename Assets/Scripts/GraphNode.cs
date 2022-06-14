@@ -7,30 +7,24 @@ public class GraphNode<T>
 	public T value;
     private Dictionary<Action, GraphNode<T>> neighbors;
     private bool isHovered;
-	#endregion
+    #endregion
 
-	#region Properties
+    #region Properties
     public bool Hovered 
     { 
         get { return isHovered; } 
         set { isHovered = value; }
     }
-	#endregion
+    #endregion
 
-	#region Constructors
+    #region Constructors
     /// <summary>
-    /// A new graph node
+    /// A new, empty graph node
     /// </summary>
     /// <param name="value">The node's value</param>
-	public GraphNode(T value)
+    public GraphNode(T value) : this(value, null, null, null, null)
 	{
-        this.value = value;
-        neighbors = new Dictionary<Action, GraphNode<T>>();
-        neighbors.Add(Action.Up, null);
-        neighbors.Add(Action.Right, null);
-        neighbors.Add(Action.Down, null);
-        neighbors.Add(Action.Left, null);
-        isHovered = false;
+        // All values set in the other constructor
     }
     /// <summary>
     /// A new graph node
@@ -58,10 +52,8 @@ public class GraphNode<T>
     /// </summary>
     /// <param name="direction">The direction of the neighbor</param>
     /// <returns>The neighboring node</returns>
-    public GraphNode<T> GetNeighbor(Action direction)
-	{
-        return neighbors[direction];
-	}
+    public GraphNode<T> GetNeighbor(Action direction) { return neighbors[direction]; }
+
     /// <summary>
     /// Sets a new neighbor for the node
     /// </summary>

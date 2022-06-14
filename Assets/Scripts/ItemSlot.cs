@@ -20,12 +20,18 @@ public class ItemSlot : MonoBehaviour
 
         // Destroys the gameObject if there is no parent
         if(transform.parent == null)
-            DestroyImmediate(this.gameObject);
+            DestroyImmediate(gameObject);
     }
 
     /// <summary>
-    /// Hover (or unhover) the slot's UI
+    /// Show the slot is being hovered over
     /// </summary>
     /// <param name="isHovered">Whether the slot is being hovered or unhovered</param>
-    public void Hover(bool isHovered) { transform.GetChild(0).GetChild(1).gameObject.SetActive(isHovered); }
+    private void Hover(bool isHovered) { transform.GetChild(0).GetChild(1).gameObject.SetActive(isHovered); }
+
+    /// <summary>
+    /// Show the slot is being selected
+    /// </summary>
+    /// <param name="isSelected">Whether the slot is being selected or deselected</param>
+    private void Select(bool isSelected) { transform.GetChild(0).GetChild(2).gameObject.SetActive(isSelected); }
 }

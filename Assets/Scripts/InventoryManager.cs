@@ -156,19 +156,20 @@ public class InventoryManager : MonoBehaviour
         // Dynamically add neighbors
         for(int i = 0; i < numOfSlots; i++)
         {
-            // Has an above neighbor
+            // Has an above neighbor if the slot is not in the first row
             if(i / numOfColumns > 0)
                 itemSlots[i].SetNeighbor(Action.Up, itemSlots[i - columns]);
 
-            // Has a right neighbor
+            // Has a right neighbor if the slot is not in the last column
+            // AND is not the last slot (edge case if numOfSlots / numOfColumns != 0)
             if(i % numOfColumns < numOfColumns - 1 && i + 1 < numOfSlots)
                 itemSlots[i].SetNeighbor(Action.Right, itemSlots[i + 1]);
 
-            // Has a below neighbor
+            // Has a below neighbor if the slot is not in the last row
             if(i + numOfColumns < numOfSlots)
                 itemSlots[i].SetNeighbor(Action.Down, itemSlots[i + columns]);
 
-            // Has a left neighbor
+            // Has a left neighbor if the slot is not in the first column
             if(i % numOfColumns > 0)
                 itemSlots[i].SetNeighbor(Action.Left, itemSlots[i - 1]);
         }
@@ -272,5 +273,5 @@ public class InventoryManager : MonoBehaviour
             Debug.Log(selectedItem.value.name + " has been selected");
         else
             Debug.Log("There is no item to select");
-	}
+    }
 }
