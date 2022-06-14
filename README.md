@@ -13,3 +13,6 @@ Quit Application: ESC
 
 *based on the current control scheme. Both work if the control scheme is set to 'Any'  
 ^selecting currently does nothing (it is designed to be determined in the main program/game the inventory is used in)  
+
+## Demo
+![Demo GIF](https://github.com/rhysstever/InventoryManager/blob/main/Assets/Media/demo.gif)
