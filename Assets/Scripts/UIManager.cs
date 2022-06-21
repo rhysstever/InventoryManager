@@ -23,11 +23,16 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
-    public GameObject canvas;
-    public GameObject inventoryPanel;
-    public GameObject itemSlotPrefab;
-    public GameObject slotsCountInput;
-    public GameObject controlsDropdown;
+    [SerializeField]
+    private GameObject canvas;
+    [SerializeField]
+    private GameObject inventoryPanel;
+    [SerializeField]
+    private GameObject itemSlotPrefab;
+    [SerializeField]
+    private GameObject slotsCountInput;
+    [SerializeField]
+    private GameObject controlsDropdown;
 
     // Start is called before the first frame update
     void Start()
