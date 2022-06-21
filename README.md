@@ -16,8 +16,3 @@ Quit Application: ESC
 
 ## Demo
 ![Demo GIF](https://github.com/rhysstever/InventoryManager/blob/main/Assets/Media/demo.gif)
-
-## Future Plans
-Features I plan to add in the future:  
-- wrapping (toggable)
-- visually showing when a slot is selected (maybe the red markers turn green)
