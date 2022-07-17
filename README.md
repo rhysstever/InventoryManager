@@ -1,11 +1,6 @@
 # InventoryManager
 A mock inventory that can be used as a part of a larger program/game
 
-## How to Run Project
-1. Download the .zip file [here](https://github.com/rhysstever/InventoryManager/blob/main/InventoryManager.zip)
-2. Extract all the files
-3. Run 'InventoryManager.exe'
-
 ## Controls
 Movement*: WASD or Numpad 8456  
 Select*^: E or Numpad 9  
